@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EarthSignal — Earth and Space Food Resilience Research</title>
+  <link rel="stylesheet" href="/static/styles.css?v=10">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="/static/config.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark">E</div>
+    <div><strong>EARTHSIGNAL</strong><small>EARTH + SPACE FOOD RESILIENCE RESEARCH</small></div>
+    <span class="top-note">TEXORA TECH SOLUTIONS</span>
+  </header>
+  <nav class="main-nav" aria-label="Main navigation">
+    <a class="nav-link active" href="#experiments" data-page="experiments">Space Crop Research</a>
+    <a class="nav-link" href="#research" data-page="research">Research</a>
+    <a class="nav-link" href="#farmer" data-page="farmer" data-i18n="navFarmer">Farmer Dashboard</a>
+  </nav>
+
+  <main>
+    <section id="research-page" hidden>
+    <section class="platform-hero research-hero">
+      <p class="eyebrow">RESEARCH &amp; CLIMATE INTELLIGENCE</p>
+      <h1>Research workspace</h1>
+      <p class="sub">Explore NASA POWER rainfall and air-temperature records for locations worldwide, compare selected points, and export the evidence behind your findings.</p>
+    </section>
+
+    <aside class="research-method-note">
+      NASA POWER values describe regional grid estimates, not measurements at every farm or district. Rainfall signals below are screening indicators for research; they do not confirm floods, drought impacts or their causes.
+    </aside>
+
+    <section class="panel controls">
+      <div class="field">
+        <label for="place">Location quick picks / current selection</label>
+        <select id="place">
+          <option value="0.3476,32.5825">Kampala</option>
+          <option value="2.2499,32.8998" selected>Lira</option>
+          <option value="2.7746,32.2990">Gulu</option>
+          <option value="1.0821,34.1750">Mbale</option>
+          <option value="-0.6067,30.6545">Mbarara</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="start">Start date</label>
+        <input id="start" type="date" value="2020-01-01">
+      </div>
+      <div class="field">
+        <label for="end">End date</label>
+        <input id="end" type="date" value="2025-12-31">
+      </div>
+      <button id="load">Load NASA data</button>
+    </section>
+
+    <section class="panel research-location-search" aria-label="Search a global research location">
+      <div class="field">
+        <label for="research-location-query">Search any city, district or region worldwide</label>
+        <input id="research-location-query" type="search" placeholder="e.g. Nairobi, Kenya or Sydney, Australia" autocomplete="off">
+      </div>
+      <button id="research-location-search-button" type="button">Find location</button>
+      <p id="research-location-status" class="location-search-status" role="status" aria-live="polite">Search globally, then load NASA data for the selected coordinates.</p>
+      <div id="research-location-results" class="location-search-results" role="group" aria-label="Global location results" hidden></div>
+    </section>
+
+    <div id="status" class="status" role="status">Choose a location and load live NASA data.</div>
+
+    <section id="results" hidden>
+      <div class="section-head">
+        <div><p class="eyebrow">OBSERVATION SUMMARY</p><h2 id="place-title">Lira</h2></div>
+        <span id="live-tag" class="live-tag">LIVE NASA POWER DATA</span>
+      </div>
+      <div class="stats">
+        <article class="stat"><span>Mean daily precipitation</span><strong id="rain-mean">—</strong><small id="rain-unit"></small></article>
+        <article class="stat"><span>Mean air temperature</span><strong id="temp-mean">—</strong><small id="temp-unit"></small></article>
+        <article class="stat"><span>Valid daily records</span><strong id="records">—</strong><small>Across returned series</small></article>
+      </div>
+      <section class="panel research-brief" aria-labelledby="research-brief-title" aria-live="polite">
+        <p class="eyebrow">AT A GLANCE</p>
+        <h2 id="research-brief-title">Research brief</h2>
+        <p id="research-brief-text"></p>
+        <p class="research-brief-note">These summaries describe the selected observations. Investigate potential flood or drought conditions with local gauges, impact records and other evidence.</p>
+      </section>
+      <section class="panel comparison-panel" aria-labelledby="comparison-title">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow">LOCATION COMPARISON</p><h2 id="comparison-title">Compare selected points</h2></div>
+          <button id="compare-locations" type="button">Compare selected</button>
+        </div>
+        <p class="comparison-note">Select Uganda points for the same dates. Global searches can be loaded as the primary research location. These are point samples, not district or region-wide averages.</p>
+        <div class="comparison-locations" role="group" aria-label="Locations to compare">
+          <label><input type="checkbox" name="compare-location" value="0.3476,32.5825"> Kampala</label>
+          <label><input type="checkbox" name="compare-location" value="2.2499,32.8998"> Lira</label>
+          <label><input type="checkbox" name="compare-location" value="2.7746,32.2990"> Gulu</label>
+          <label><input type="checkbox" name="compare-location" value="1.0821,34.1750"> Mbale</label>
+          <label><input type="checkbox" name="compare-location" value="-0.6067,30.6545"> Mbarara</label>
+        </div>
+        <p id="comparison-status" class="comparison-status" role="status">Choose other locations to compare against the selected point.</p>
+        <div id="comparison-results" hidden>
+          <p id="comparison-summary" class="comparison-summary"></p>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Location</th><th>Mean daily precipitation</th><th>Mean air temperature</th><th>Valid days</th><th>Coordinates</th></tr></thead>
+              <tbody id="comparison-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <section class="panel chart-panel">
+        <div class="chart-heading"><div><p class="eyebrow">DAILY OBSERVATIONS</p><h2>Environmental time series</h2></div>
+          <select id="metric">
+            <option value="PRECTOTCORR">Precipitation</option>
+            <option value="T2M">Air temperature</option>
+            <option value="NDVI" disabled>Vegetation (NDVI)</option>
+            <option value="LST_DAY_C" disabled>Land-surface temperature</option>
+          </select>
+        </div>
+        <canvas id="chart" height="110"></canvas>
+      </section>
+      <section class="panel event-explorer" aria-labelledby="event-explorer-title">
+        <div class="event-heading">
+          <div><p class="eyebrow">RAINFALL EVENT EXPLORER</p><h2 id="event-explorer-title">Wet-day extremes and extended dry spells</h2></div>
+          <div class="field event-filter"><label for="event-filter">Show</label>
+            <select id="event-filter">
+              <option value="all">All screening signals</option>
+              <option value="high-rain">High-rainfall days</option>
+              <option value="dry-spell">Extended dry spells</option>
+            </select>
+          </div>
+        </div>
+        <p id="event-summary" class="event-summary"></p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Signal</th><th>Date or period</th><th>Observed rainfall</th></tr></thead>
+            <tbody id="event-rows"></tbody>
+          </table>
+        </div>
+        <p id="event-empty" class="event-empty" hidden>No events meet these screening criteria for the selected dates.</p>
+        <p class="analysis-caveat">High-rainfall days are at or above the 95th percentile of positive wet-day totals in this selected period; dry spells are at least 14 consecutive days below 1 mm/day. These exploratory screens are not flood or drought declarations. Daily gridded data cannot establish local impacts or short-duration rainfall intensity.</p>
+      </section>
+      <section class="panel modis-panel" aria-labelledby="modis-title">
+        <div class="modis-heading">
+          <div><p class="eyebrow">NASA MODIS</p><h2 id="modis-title">Vegetation and land-surface temperature</h2></div>
+          <button id="load-modis" type="button">Load MODIS indicators</button>
+        </div>
+        <p id="modis-status" class="modis-status" role="status">MODIS point data is free through NASA AppEEARS, but requires a NASA Earthdata Login configured locally.</p>
+        <small>NDVI is a vegetation index, not a direct measure of crop health. Land-surface temperature is not air temperature.</small>
+      </section>
+      <section class="panel interpretation" aria-labelledby="interpretation-title" aria-live="polite">
+        <div class="interpretation-heading">
+          <div><p class="eyebrow">PLAIN-LANGUAGE READOUT</p><h2 id="interpretation-title">What this graph means</h2></div>
+        </div>
+        <p id="interpretation-summary" class="interpretation-summary"></p>
+        <div id="interpretation-details" class="interpretation-details"></div>
+        <p class="interpretation-caveat">This describes the selected observations only. It does not explain causes, establish a statistically significant trend or provide a forecast.</p>
+      </section>
+      <section class="panel historical-analysis" aria-labelledby="analysis-title" aria-live="polite">
+        <div class="analysis-heading">
+          <div><p class="eyebrow">HISTORICAL ANALYSIS</p><h2 id="analysis-title">Changes worth investigating</h2></div>
+          <button id="download-report" class="secondary-button" type="button">Download evidence report</button>
+        </div>
+        <div id="analysis-signals" class="analysis-signals"></div>
+        <p class="analysis-caveat">Explanations use transparent statistical rules, with no paid AI service. Anomalies compare complete months with earlier values for the same calendar month. Trends use complete calendar years and are not forecasts or proof of cause.</p>
+      </section>
+      <section class="panel provenance">
+        <h2>Data provenance</h2>
+        <div id="provenance" class="provenance-grid"></div>
+      </section>
+      <p class="footnote">Environmental observations support investigation and planning. They are not a substitute for official forecasts, calibrated field measurements or local expert assessment.</p>
+    </section>
+    </section>
+
+    <section id="farmer-page" hidden>
+      <section class="platform-hero farmer-hero">
+        <p class="eyebrow" data-i18n="farmerEyebrow">FIELD MONITORING · TEXORA SOILSENSE</p>
+        <div class="farmer-heading">
+          <div>
+            <h1 data-i18n="farmerTitle">Farmer Dashboard</h1>
+            <p class="sub" data-i18n="farmerIntro">View readings from your field device and keep farm details in one place. The dashboard works with the EarthSignal sensor API when your ESP32 is connected to the backend.</p>
+          </div>
+          <div class="field farmer-language-picker">
+            <label for="farmer-language" data-i18n="languageLabel">Language</label>
+            <select id="farmer-language">
+              <option value="en">English</option>
+              <option value="lg">Luganda</option>
+              <option value="luo">Luo</option>
+              <option value="ach">Acholi</option>
+              <option value="xog">Lusoga</option>
+              <option value="nyn">Runyankole</option>
+              <option value="myx">Lugisu (Lumasaba)</option>
+              <option value="sw">Kiswahili</option>
+            </select>
+          </div>
+        </div>
+        <p class="translation-review-note" data-i18n="translationReview">Local-language wording is an initial draft. Please have fluent speakers review it before farmers rely on it.</p>
+      </section>
+
+      <section class="panel farmer-chat-panel" aria-labelledby="farmer-chat-title">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow">EARTHSIGNAL HELP</p><h2 id="farmer-chat-title" data-i18n="chatTitle">Ask about EarthSignal</h2></div>
+        </div>
+        <p class="weather-intro" data-i18n="chatIntro">Ask what the project does, how the dashboards work, what the sensor measures, or what the research can and cannot tell you.</p>
+        <div id="farmer-chat-messages" class="farmer-chat-messages" role="log" aria-live="polite"></div>
+        <div id="farmer-chat-topics" class="farmer-chat-topics" aria-label="Suggested questions">
+          <button type="button" class="secondary-button" data-chat-topic="about" data-i18n="chatTopicAbout">What is EarthSignal?</button>
+          <button type="button" class="secondary-button" data-chat-topic="farmer" data-i18n="chatTopicFarmer">Farmer Dashboard</button>
+          <button type="button" class="secondary-button" data-chat-topic="research" data-i18n="chatTopicResearch">NASA data</button>
+          <button type="button" class="secondary-button" data-chat-topic="crop" data-i18n="chatTopicCrop">Crop research</button>
+          <button type="button" class="secondary-button" data-chat-topic="sensor" data-i18n="chatTopicSensor">Soil sensor</button>
+          <button type="button" class="secondary-button" data-chat-topic="impact" data-i18n="chatTopicImpact">Project impact</button>
+          <button type="button" class="secondary-button" data-chat-topic="limits" data-i18n="chatTopicLimits">Limitations</button>
+        </div>
+        <form id="farmer-chat-form" class="farmer-chat-form">
+          <label class="sr-only" for="farmer-chat-input" data-i18n="chatInputLabel">Ask a question about the project</label>
+          <input id="farmer-chat-input" type="text" maxlength="400" autocomplete="off" data-i18n-placeholder="chatPlaceholder" placeholder="Type a question about the project">
+          <button type="submit" data-i18n="chatAsk">Ask</button>
+        </form>
+        <p class="chat-note" data-i18n="chatNote">This project guide uses built-in answers; it does not use generative AI or provide personalized farming instructions.</p>
+      </section>
+
+      <section class="panel farm-profile">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow" data-i18n="farmProfile">FARM PROFILE</p><h2 data-i18n="farmDetails">Farm details</h2></div>
+          <span class="connection-state" id="farmer-connection">Not connected</span>
+        </div>
+        <div class="farm-fields">
+          <div class="field"><label for="farm-name" data-i18n="farmName">Farm name</label><input id="farm-name" type="text" placeholder="e.g. Green Valley Farm"></div>
+          <div class="field farm-location-field">
+            <label for="farm-location" data-i18n="farmLocation">Farm location</label>
+            <div class="farm-location-controls">
+              <input id="farm-location" type="search" value="Lira, Uganda" placeholder="e.g. Lira, Uganda" autocomplete="off">
+              <button id="find-farm-location" class="secondary-button" type="button" data-i18n="find">Find</button>
+            </div>
+            <p id="weather-location-status" class="location-search-status" role="status" aria-live="polite">Live weather defaults to Lira, Uganda. Find a different farm location to update it.</p>
+            <div id="weather-location-results" class="location-search-results" role="group" aria-label="Farm location results" hidden></div>
+          </div>
+          <div class="field"><label for="farm-crop" data-i18n="mainCrop">Main crop</label><select id="farm-crop"><option value="Maize">Maize</option><option value="Beans">Beans</option><option value="Coffee">Coffee</option><option value="Rice">Rice</option><option value="Cassava">Cassava</option><option value="Other">Other</option></select></div>
+          <div class="field"><label for="farm-device" data-i18n="deviceId">ESP32 device ID</label><input id="farm-device" type="text" value="soilsense-01"></div>
+        </div>
+        <button id="save-farm" type="button" data-i18n="saveFarm">Save farm details</button>
+      </section>
+
+      <section class="panel farmer-sms-panel" aria-labelledby="farmer-sms-title">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow">REMOTE FARMER UPDATES</p><h2 id="farmer-sms-title" data-i18n="smsTitle">Daily SMS information</h2></div>
+        </div>
+        <p class="weather-intro" data-i18n="smsIntro">Opt in to one daily message with the farm's seven-day rainfall outlook, current temperature, and latest available SoilSense reading. Updates are informational, not farming instructions.</p>
+        <form id="farmer-sms-subscribe-form" class="sms-form">
+          <div class="field">
+            <label for="farmer-sms-phone" data-i18n="smsPhoneLabel">Mobile number in international format</label>
+            <input id="farmer-sms-phone" type="tel" inputmode="tel" autocomplete="tel" required pattern="\+[1-9][0-9]{7,14}" placeholder="+2567XXXXXXXX">
+          </div>
+          <label class="sms-consent"><input id="farmer-sms-consent" type="checkbox" required> <span data-i18n="smsConsent">I agree to receive one daily EarthSignal SMS. I can unsubscribe from this dashboard.</span></label>
+          <button type="submit" data-i18n="smsRequestCode">Send verification code</button>
+        </form>
+        <form id="farmer-sms-confirm-form" class="sms-form" hidden>
+          <div class="field">
+            <label for="farmer-sms-code" data-i18n="smsCodeLabel">Six-digit verification code</label>
+            <input id="farmer-sms-code" type="text" inputmode="numeric" autocomplete="one-time-code" required pattern="[0-9]{6}" maxlength="6">
+          </div>
+          <button type="submit" data-i18n="smsVerify">Verify and subscribe</button>
+        </form>
+        <p id="farmer-sms-status" class="sms-status" role="status" aria-live="polite"></p>
+        <div class="sms-unsubscribe">
+          <p data-i18n="smsUnsubscribePrompt">To stop daily messages, verify your number below.</p>
+          <form id="farmer-sms-unsubscribe-form" class="sms-form">
+            <div class="field">
+              <label for="farmer-sms-unsubscribe-phone" data-i18n="smsPhoneLabel">Mobile number in international format</label>
+              <input id="farmer-sms-unsubscribe-phone" type="tel" inputmode="tel" autocomplete="tel" required pattern="\+[1-9][0-9]{7,14}" placeholder="+2567XXXXXXXX">
+            </div>
+            <button type="submit" class="secondary-button" data-i18n="smsUnsubscribe">Request unsubscribe code</button>
+          </form>
+          <form id="farmer-sms-unsubscribe-confirm-form" class="sms-form" hidden>
+            <div class="field">
+              <label for="farmer-sms-unsubscribe-code" data-i18n="smsCodeLabel">Six-digit verification code</label>
+              <input id="farmer-sms-unsubscribe-code" type="text" inputmode="numeric" autocomplete="one-time-code" required pattern="[0-9]{6}" maxlength="6">
+            </div>
+            <button type="submit" class="secondary-button" data-i18n="smsConfirmUnsubscribe">Confirm unsubscribe</button>
+          </form>
+        </div>
+        <p class="chat-note" data-i18n="smsSetupNote">SMS requires Africa's Talking credentials on the backend. Your number is verified before daily messages begin.</p>
+      </section>
+
+      <section class="panel farmer-weather-panel" aria-labelledby="farmer-weather-title">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow" data-i18n="weatherEyebrow">WEATHER AND RAINFALL</p><h2 id="farmer-weather-title" data-i18n="weatherTitle">Weather at your farm</h2></div>
+          <button class="secondary-button" id="refresh-weather" type="button" disabled data-i18n="refreshWeather">Refresh weather</button>
+        </div>
+        <p class="weather-intro" data-i18n="weatherIntro">Current conditions, recent daily context and a 7-day outlook for your saved farm location. Weather refreshes automatically.</p>
+        <p id="weather-selected-location" class="weather-selected-location" hidden></p>
+        <p id="weather-status" class="weather-status" role="status" aria-live="polite"></p>
+
+        <div id="weather-data" hidden>
+          <div class="current-weather-grid" aria-label="Current weather conditions">
+            <article class="weather-highlight">
+              <span data-i18n="currentConditions">Current conditions</span>
+              <strong id="weather-condition">—</strong>
+              <small id="weather-observed-at">—</small>
+            </article>
+            <article class="weather-reading"><span data-i18n="temperature">Temperature</span><strong id="weather-temperature">—</strong></article>
+            <article class="weather-reading"><span data-i18n="feelsLike">Feels like</span><strong id="weather-apparent">—</strong></article>
+            <article class="weather-reading"><span data-i18n="humidity">Humidity</span><strong id="weather-humidity">—</strong></article>
+            <article class="weather-reading"><span data-i18n="rainNow">Rain now</span><strong id="weather-current-rain">—</strong></article>
+            <article class="weather-reading"><span data-i18n="wind">Wind</span><strong id="weather-wind">—</strong></article>
+          </div>
+
+          <section class="weather-section" aria-labelledby="recent-weather-title">
+            <h3 id="recent-weather-title" data-i18n="recentWeather">Recent weather · 7 days</h3>
+            <div id="weather-recent" class="weather-forecast-grid"></div>
+          </section>
+
+          <section class="weather-section" aria-labelledby="weather-forecast-title">
+            <h3 id="weather-forecast-title" data-i18n="nextSevenDays">Next 7 days</h3>
+            <div id="weather-forecast" class="weather-forecast-grid"></div>
+          </section>
+
+          <section class="weather-section" aria-labelledby="rainfall-history-title">
+            <h3 id="rainfall-history-title" data-i18n="rainfallHistoryTitle">Rainfall over the past 12 complete months</h3>
+            <p class="weather-subnote">Monthly totals sum available daily rainfall values; check each month's data coverage.</p>
+            <div id="rainfall-history" class="rainfall-history"></div>
+          </section>
+          <p class="weather-attribution">Weather and historical rainfall: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.</p>
+        </div>
+      </section>
+
+      <section class="farmer-stats">
+        <article class="farmer-stat"><span data-i18n="soilMoisture">Soil moisture</span><strong id="farmer-moisture">—</strong><small id="farmer-moisture-status" data-i18n="waitingSensor">Waiting for sensor data</small></article>
+        <article class="farmer-stat"><span data-i18n="rawSensor">Raw sensor value</span><strong id="farmer-raw">—</strong><small data-i18n="adcReading">ESP32 ADC reading</small></article>
+        <article class="farmer-stat"><span data-i18n="lastReceived">Last received</span><strong id="farmer-updated">—</strong><small id="farmer-age" data-i18n="noReadings">No readings received</small></article>
+      </section>
+
+      <section class="panel farmer-live-panel">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow" data-i18n="liveDevice">LIVE FIELD DEVICE</p><h2 data-i18n="soilConnection">SoilSense connection</h2></div>
+          <button class="secondary-button" id="refresh-sensor" type="button" data-i18n="refreshReadings">Refresh readings</button>
+        </div>
+        <div class="sensor-status-row">
+          <span class="sensor-dot" id="sensor-dot"></span>
+          <strong id="sensor-status-title">Waiting for ESP32</strong>
+        </div>
+        <p id="sensor-status-message" class="sensor-message">Save your farm details, then connect the ESP32 to the same backend network. The local SoilSense dashboard on the ESP32 remains available separately.</p>
+        <div class="moisture-track" role="progressbar" aria-label="Reported soil moisture" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="moisture-bar" class="moisture-fill"></div>
+        </div>
+        <p class="farmer-note" data-i18n="soilMoistureNote">Soil moisture is shown only when an actual sensor reading has been received. The firmware-reported percentage is calculated from calibrated analog values. Verify calibration against the specific probe and soil before using the percentage for decisions.</p>
+      </section>
+
+      <section class="panel farmer-guidance">
+        <p class="eyebrow" data-i18n="cropWaterContext">CROP AND WATER CONTEXT</p>
+        <h2 id="farmer-guidance-title" data-i18n="planningContext">Planning context</h2>
+        <div class="farmer-advisory-grid">
+          <article><h3 data-i18n="plantingOutlook">Planting outlook</h3><p id="planting-guidance" data-i18n="weatherContextWait">Weather context will appear here when the farm location's data is available.</p></article>
+          <article><h3 data-i18n="irrigationCheck">Irrigation check</h3><p id="irrigation-guidance" data-i18n="irrigationWait">Sensor and forecast context will appear after weather data loads. Check actual field conditions before acting.</p></article>
+        </div>
+        <p class="farmer-guidance-note" data-i18n="guidanceCaveat">This is general decision support, not a crop-specific planting calendar or an irrigation schedule. Confirm advice with local extension services and field conditions.</p>
+      </section>
+
+      <section class="panel farmer-alerts" aria-labelledby="farmer-alerts-title">
+        <p class="eyebrow" data-i18n="monitoring">MONITORING</p>
+        <h2 id="farmer-alerts-title" data-i18n="weatherSensorAlerts">Weather and sensor alerts</h2>
+        <ul id="farmer-alert-list" class="farmer-alert-list" aria-live="polite">
+          <li data-i18n="alertsWait">Alerts will appear when weather or sensor information is available.</li>
+        </ul>
+      </section>
+
+      <section class="panel farmer-guidance farmer-sensor-note">
+        <p class="eyebrow" data-i18n="fieldDataStatus">FIELD DATA STATUS</p>
+        <h2 data-i18n="deviceMeasures">What this device measures</h2>
+        <p data-i18n="sensorScope">SoilSense reports the raw analog value, its calculated soil-moisture percentage and a dry / moist / wet status. The firmware has not been verified here; do not assume it measures air temperature, soil temperature, water level or weather forecast.</p>
+        <p data-i18n="weatherSensorSeparation">Weather forecasts and historical rainfall remain separate from field sensor readings. A regional forecast does not measure conditions at an individual farm.</p>
+      </section>
+      <p class="footnote" data-i18n="farmerFootnote">Sensor readings are observations from the connected device. Weather and rainfall data are contextual, not a guaranteed forecast or an automatic irrigation instruction.</p>
+    </section>
+
+    <section id="experiments-page">
+      <section class="platform-hero experiment-hero">
+        <p class="eyebrow">CONTROLLED GROWING · FOOD RESILIENCE RESEARCH</p>
+        <h1>Space Crop Research</h1>
+        <p class="sub">Record controlled plant-growth experiments, habitat conditions, water use and harvests. Earth-based experiments inform research questions; they do not reproduce microgravity.</p>
+      </section>
+
+      <aside class="research-method-note">
+        Enter measured values with their stated units. Missing measurements stay blank. Water-use efficiency is calculated only when both water supplied and harvested biomass have been recorded; it is an exploratory prototype metric, not a validated crop-water-productivity standard.
+      </aside>
+
+      <section class="panel experiment-create-panel">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow">START A STUDY</p><h2>Create a controlled growing experiment</h2></div>
+        </div>
+        <form id="experiment-form">
+          <div class="experiment-form-grid">
+            <div class="field"><label for="experiment-name">Experiment name</label><input id="experiment-name" required maxlength="120" placeholder="Water-use pilot"></div>
+            <div class="field"><label for="experiment-crop">Crop</label><input id="experiment-crop" required maxlength="80" placeholder="Lettuce"></div>
+            <div class="field"><label for="experiment-variety">Variety (optional)</label><input id="experiment-variety" maxlength="120"></div>
+            <div class="field"><label for="experiment-location">Growing location</label><input id="experiment-location" required maxlength="200" placeholder="Indoor chamber, Lira"></div>
+            <div class="field"><label for="experiment-start">Start date</label><input id="experiment-start" type="date" required></div>
+            <div class="field"><label for="experiment-end">End date (optional)</label><input id="experiment-end" type="date"></div>
+          </div>
+          <div class="field experiment-objective"><label for="experiment-objective">Research objective</label><textarea id="experiment-objective" required maxlength="2000" rows="3" placeholder="How does water availability relate to plant growth under the same light and growing-medium conditions?"></textarea></div>
+          <h3>Comparison groups</h3>
+          <div class="experiment-group-grid">
+            <div class="experiment-group-input">
+              <strong>Group 1 — control</strong>
+              <label for="group-one-name">Group name</label><input id="group-one-name" required maxlength="80" value="Control">
+              <label for="group-one-treatment">Treatment / conditions</label><input id="group-one-treatment" required maxlength="300" value="Consistent, adequate watering">
+              <label for="group-one-water">Watering plan (optional)</label><input id="group-one-water" maxlength="500">
+            </div>
+            <div class="experiment-group-input">
+              <strong>Group 2 — comparison</strong>
+              <label for="group-two-name">Group name</label><input id="group-two-name" required maxlength="80" value="Reduced water">
+              <label for="group-two-treatment">Treatment / conditions</label><input id="group-two-treatment" required maxlength="300" value="Reduced measured water supply">
+              <label for="group-two-water">Watering plan (optional)</label><input id="group-two-water" maxlength="500">
+            </div>
+          </div>
+          <button type="submit">Create experiment</button>
+        </form>
+        <p id="experiment-create-status" class="experiment-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="panel experiment-workspace">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow">STUDY WORKSPACE</p><h2>Experiments and results</h2></div>
+          <div class="experiment-workspace-actions">
+            <button id="download-experiment-report" class="secondary-button" type="button" disabled>Download study report</button>
+            <button id="refresh-experiments" class="secondary-button" type="button">Refresh</button>
+          </div>
+        </div>
+        <div class="field experiment-picker">
+          <label for="experiment-select">Select an experiment</label>
+          <select id="experiment-select"><option value="">No experiments loaded</option></select>
+        </div>
+        <p id="experiment-workspace-status" class="experiment-status" role="status" aria-live="polite">Loading saved experiments…</p>
+        <div id="experiment-detail" hidden>
+          <div id="experiment-summary" class="experiment-summary"></div>
+          <section class="experiment-analysis">
+            <h3>Measured outcomes</h3>
+            <div id="experiment-analysis-results" class="experiment-analysis-grid"></div>
+            <p class="analysis-caveat">Growth is the mean of per-plant first-to-last height change divided by elapsed days. Water-use calculations use only recorded inputs and harvest mass. These results are descriptive, not causal findings.</p>
+          </section>
+          <section class="panel experiment-growth-panel">
+            <h3>Plant height over time · group comparison</h3>
+            <p id="experiment-growth-status" class="experiment-status">No plant-height observations recorded yet.</p>
+            <canvas id="experiment-growth-chart" height="100" aria-label="Average recorded plant height by group and date"></canvas>
+          </section>
+
+          <div class="experiment-entry-grid">
+            <section class="panel experiment-entry-panel">
+              <h3>Environmental reading</h3>
+              <form id="experiment-reading-form" class="stacked-form">
+                <label>Group <select id="reading-group"></select></label>
+                <label>Source / device ID <input id="reading-source" required value="manual-log" maxlength="100"></label>
+                <label>Air temperature (°C) <input id="reading-temperature" type="number" step="any"></label>
+                <label>Relative humidity (%) <input id="reading-humidity" type="number" min="0" max="100" step="any"></label>
+                <label>Light (lux) <input id="reading-light" type="number" min="0" step="any"></label>
+                <label>Medium moisture (%) <input id="reading-moisture" type="number" min="0" max="100" step="any"></label>
+                <label>Water added (L) <input id="reading-water" type="number" min="0" step="any"></label>
+                <label>Notes <textarea id="reading-notes" maxlength="1000" rows="2"></textarea></label>
+                <button type="submit">Save environmental reading</button>
+              </form>
+            </section>
+
+            <section class="panel experiment-entry-panel">
+              <h3>Plant observation</h3>
+              <form id="plant-observation-form" class="stacked-form">
+                <label>Group <select id="observation-group"></select></label>
+                <label>Plant ID <input id="plant-id" required maxlength="80" placeholder="plant-01"></label>
+                <label>Height (cm) <input id="plant-height" type="number" min="0" step="any"></label>
+                <label>Leaf count <input id="plant-leaves" type="number" min="0" step="1"></label>
+                <label>Visible stress notes <input id="plant-stress" maxlength="500"></label>
+                <label>Additional notes <textarea id="plant-notes" maxlength="1000" rows="2"></textarea></label>
+                <label>Image reference (optional) <input id="plant-image" maxlength="1000" placeholder="File path or URL reference"></label>
+                <button type="submit">Save plant observation</button>
+              </form>
+            </section>
+
+            <section class="panel experiment-entry-panel">
+              <h3>Harvest record</h3>
+              <form id="harvest-form" class="stacked-form">
+                <label>Group <select id="harvest-group"></select></label>
+                <label>Plants harvested <input id="harvest-count" type="number" min="1" step="1" required></label>
+                <label>Fresh mass (g) <input id="harvest-fresh-mass" type="number" min="0" step="any" required></label>
+                <label>Dry mass (g), if measured <input id="harvest-dry-mass" type="number" min="0" step="any"></label>
+                <label>Notes <textarea id="harvest-notes" maxlength="1000" rows="2"></textarea></label>
+                <button type="submit">Save harvest</button>
+              </form>
+            </section>
+          </div>
+          <section class="panel experiment-history-panel">
+            <h3>Recent records</h3>
+            <div class="experiment-history-grid">
+              <div><h4>Environment</h4><div id="experiment-reading-history"></div></div>
+              <div><h4>Plant growth</h4><div id="plant-observation-history"></div></div>
+              <div><h4>Harvest</h4><div id="harvest-history"></div></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel space-crop-review" aria-labelledby="space-crop-review-title">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow">PUBLISHED SPACE-CROP EVIDENCE</p><h2 id="space-crop-review-title">What NASA learned from lettuce grown on the ISS</h2></div>
+        </div>
+        <p class="space-review-intro">This is a review of published spaceflight research, not a second live experiment. The NASA record describes red romaine lettuce grown in the Veggie system aboard the International Space Station. Compare research questions and methods; the ISS conditions and measurements are not interchangeable with your Earth-grown crop.</p>
+        <div class="space-review-highlights">
+          <article><strong>Crop and flight</strong><p>‘Outredgeous’ red romaine lettuce grew in Veggie on the ISS for 33 days during the VEG-01 technology-validation test.</p></article>
+          <article><strong>What researchers examined</strong><p>Returned samples were analyzed for microbial food safety and chemistry, including elements, antioxidants, anthocyanins and phenolics.</p></article>
+          <article><strong>Practical lesson</strong><p>NASA reported both insufficient and excess watering as challenges associated with stressed plant growth.</p></article>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Research measure</th><th>Published ISS record</th><th>Your selected Earth study</th></tr></thead>
+            <tbody id="space-review-comparison"></tbody>
+          </table>
+        </div>
+        <p id="space-review-status" class="experiment-status" role="status" aria-live="polite">Select an Earth experiment above to view its recorded values beside the NASA research context.</p>
+        <p class="analysis-caveat">The NASA summary does not report directly comparable plant-height, leaf-count or harvest-mass values. These are marked unavailable rather than estimated. NASA's reported 33-day growth period is study context, not a matched performance comparison.</p>
+        <ul class="space-review-references">
+          <li><a href="https://ntrs.nasa.gov/citations/20160004060" target="_blank" rel="noopener noreferrer">Massa et al. (2016), “Veggie: Space Vegetables for the International Space Station and Beyond” — NASA Technical Reports Server</a></li>
+          <li><a href="https://doi.org/10.1038/s41526-021-00151-x" target="_blank" rel="noopener noreferrer">Haveman et al. (2021), “Evaluating the lettuce metatranscriptome with MinION sequencing for future spaceflight food production applications” — npj Microgravity</a> <span>Ground-based ISS-like conditions; this is not an in-orbit crop record.</span></li>
+        </ul>
+      </section>
+
+      <section class="panel habitat-panel">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow">HABITAT &amp; RESOURCE MONITORING</p><h2>Log chamber conditions</h2></div>
+        </div>
+        <p class="weather-intro">This manual/API input supports future sensors. The current SoilSense sketch reports soil moisture only; temperature, humidity, light and resource values appear only when supplied by a real sensor or measured and entered. Attribute water to a group here or in its environmental log, not both, to avoid double counting.</p>
+        <form id="habitat-reading-form" class="habitat-form">
+          <div class="field"><label for="habitat-device">Device / source ID</label><input id="habitat-device" required value="chamber-01" maxlength="80"></div>
+          <div class="field"><label for="habitat-group">Experiment group (optional)</label><select id="habitat-group"><option value="">Not assigned</option></select></div>
+          <div class="field"><label for="habitat-temperature">Air temperature (°C)</label><input id="habitat-temperature" type="number" step="any"></div>
+          <div class="field"><label for="habitat-humidity">Relative humidity (%)</label><input id="habitat-humidity" type="number" min="0" max="100" step="any"></div>
+          <div class="field"><label for="habitat-light">Light (lux)</label><input id="habitat-light" type="number" min="0" step="any"></div>
+          <div class="field"><label for="habitat-moisture">Medium moisture (%)</label><input id="habitat-moisture" type="number" min="0" max="100" step="any"></div>
+          <div class="field"><label for="habitat-water">Water added (L)</label><input id="habitat-water" type="number" min="0" step="any"></div>
+          <div class="field"><label for="habitat-reservoir">Reservoir level (L)</label><input id="habitat-reservoir" type="number" min="0" step="any"></div>
+          <div class="field"><label for="habitat-co2">CO₂ (ppm, optional)</label><input id="habitat-co2" type="number" min="0" step="any"></div>
+          <div class="field"><label for="habitat-ph">Nutrient pH (optional)</label><input id="habitat-ph" type="number" min="0" max="14" step="any"></div>
+          <div class="field"><label for="habitat-ec">Nutrient EC (mS/cm, optional)</label><input id="habitat-ec" type="number" min="0" step="any"></div>
+          <button type="submit">Save habitat reading</button>
+        </form>
+        <p id="habitat-status" class="experiment-status" role="status" aria-live="polite"></p>
+        <div id="habitat-latest" class="table-scroll"></div>
+      </section>
+
+      <section class="panel crop-profiles-panel">
+        <div class="section-head compact-head">
+          <div><p class="eyebrow">CROP RESEARCH</p><h2>Crop profiles and sourced nutrition</h2></div>
+        </div>
+        <p class="analysis-caveat">Nutrition data is not inferred from environmental sensors. Add values only with a documented source, units, and relevant crop/variety context.</p>
+        <form id="crop-profile-form" class="crop-profile-form">
+          <div class="field"><label for="crop-profile-name">Crop name</label><input id="crop-profile-name" required maxlength="80"></div>
+          <div class="field"><label for="crop-profile-scientific">Scientific name (optional)</label><input id="crop-profile-scientific" maxlength="120"></div>
+          <div class="field crop-description"><label for="crop-profile-description">Description</label><input id="crop-profile-description" maxlength="1000"></div>
+          <div class="field"><label for="crop-profile-nutrition">Nutrition JSON (optional)</label><textarea id="crop-profile-nutrition" rows="2" placeholder='{"protein_g_per_100g": 0}'></textarea></div>
+          <div class="field"><label for="crop-profile-references">References JSON (required for nutrition values)</label><textarea id="crop-profile-references" rows="2" placeholder='[{"title":"Source title","url":"https://..."}]'></textarea></div>
+          <button type="submit">Save crop profile</button>
+        </form>
+        <p id="crop-profile-status" class="experiment-status" role="status" aria-live="polite"></p>
+        <div id="crop-profile-list" class="crop-profile-list"></div>
+      </section>
+      <p class="footnote">Earth-based chamber experiments are not microgravity experiments or spacecraft life-support systems. Report observations, methods, measurement units and limitations separately.</p>
+    </section>
+  </main>
+  <script src="/static/app.js?v=15"></script>
+  <script src="/static/farmer-communications.js?v=2"></script>
+  <script src="/static/farmer.js?v=9"></script>
+  <script src="/static/experiments.js?v=3"></script>
+</body>
+</html>

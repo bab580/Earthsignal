@@ -1,0 +1,10 @@
+{
+  "name": "earthsignal-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.3.4",
+  "scripts": {
+    "dev": "uv run --no-project --with-requirements requirements.txt uvicorn backend.app.main:app --host 0.0.0.0 --port 3000 --reload --reload-dir backend",
+    "start": "uv run --no-project --with-requirements requirements.txt uvicorn backend.app.main:app --host 0.0.0.0 --port 3000"
+  }
+}
