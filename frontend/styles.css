@@ -39,6 +39,15 @@
 .farmer-language-picker select{width:100%;height:42px;border:1px solid #cbd6d0;border-radius:7px;background:#fff;padding:0 10px;color:#17231f}
 .translation-review-note{margin:8px 0;color:#7a6129;font-size:11px;line-height:1.5}
 .farmer-chat-panel,.farmer-sms-panel{margin-bottom:18px}
+.earthsignal-chat-widget{position:fixed;right:22px;bottom:22px;z-index:1000}
+.chat-launcher{display:flex;align-items:center;gap:9px;min-height:48px;height:auto;padding:0 18px;border-radius:999px;box-shadow:0 8px 24px rgba(20,55,43,.24)}
+.chat-launcher span:first-child{display:grid;width:22px;height:22px;place-items:center;border:1px solid rgba(255,255,255,.72);border-radius:50%;font-size:14px}
+.floating-chat-panel{position:absolute;right:0;bottom:calc(100% + 12px);display:flex;width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 100px);flex-direction:column;overflow-y:auto;margin:0;padding:16px;box-shadow:0 12px 40px rgba(20,55,43,.24)}
+.chat-panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.chat-panel-header .eyebrow{margin-bottom:5px}
+.chat-panel-header h2{margin:0;font-size:19px}
+.chat-close{flex:0 0 auto;height:34px;padding:0 11px;background:#e8efeb;color:#174b3d;border:1px solid #cbd9d1}
+.floating-chat-panel .farmer-chat-messages{max-height:min(280px,35vh)}
 .farmer-chat-panel h2,.farmer-sms-panel h2{margin:0;font-size:20px}
 .farmer-chat-messages{display:grid;gap:8px;max-height:300px;overflow:auto;padding:12px;background:#f5f8f6;border:1px solid #e0e8e3;border-radius:9px}
 .farmer-chat-message{max-width:90%;margin:0;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.6;white-space:pre-wrap}
@@ -60,7 +69,7 @@
 .sms-unsubscribe>p{color:#607068;font-size:12px}
 .sms-unsubscribe .sms-form{margin-bottom:8px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:600px){.farmer-heading{flex-direction:column}.farmer-language-picker{width:100%}.farmer-chat-form{grid-template-columns:1fr}.farmer-chat-form button{width:100%}.sms-form{align-items:stretch;flex-direction:column}.sms-form button{width:100%}}
+@media(max-width:600px){.farmer-heading{flex-direction:column}.farmer-language-picker{width:100%}.farmer-chat-form{grid-template-columns:1fr}.farmer-chat-form button{width:100%}.sms-form{align-items:stretch;flex-direction:column}.sms-form button{width:100%}.earthsignal-chat-widget{right:12px;bottom:12px}.floating-chat-panel{width:calc(100vw - 24px);max-height:calc(100vh - 86px)}.floating-chat-panel .farmer-chat-messages{max-height:28vh}.farmer-chat-topics button{flex:1 1 125px;white-space:normal}}
 
 .farmer-weather-panel{margin-bottom:18px}
 .weather-intro,.weather-subnote{color:#607068;font-size:13px;line-height:1.55}

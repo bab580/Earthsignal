@@ -195,29 +195,6 @@
         <p class="translation-review-note" data-i18n="translationReview">Local-language wording is an initial draft. Please have fluent speakers review it before farmers rely on it.</p>
       </section>
 
-      <section class="panel farmer-chat-panel" aria-labelledby="farmer-chat-title">
-        <div class="section-head compact-head">
-          <div><p class="eyebrow">EARTHSIGNAL HELP</p><h2 id="farmer-chat-title" data-i18n="chatTitle">Ask about EarthSignal</h2></div>
-        </div>
-        <p class="weather-intro" data-i18n="chatIntro">Ask what the project does, how the dashboards work, what the sensor measures, or what the research can and cannot tell you.</p>
-        <div id="farmer-chat-messages" class="farmer-chat-messages" role="log" aria-live="polite"></div>
-        <div id="farmer-chat-topics" class="farmer-chat-topics" aria-label="Suggested questions">
-          <button type="button" class="secondary-button" data-chat-topic="about" data-i18n="chatTopicAbout">What is EarthSignal?</button>
-          <button type="button" class="secondary-button" data-chat-topic="farmer" data-i18n="chatTopicFarmer">Farmer Dashboard</button>
-          <button type="button" class="secondary-button" data-chat-topic="research" data-i18n="chatTopicResearch">NASA data</button>
-          <button type="button" class="secondary-button" data-chat-topic="crop" data-i18n="chatTopicCrop">Crop research</button>
-          <button type="button" class="secondary-button" data-chat-topic="sensor" data-i18n="chatTopicSensor">Soil sensor</button>
-          <button type="button" class="secondary-button" data-chat-topic="impact" data-i18n="chatTopicImpact">Project impact</button>
-          <button type="button" class="secondary-button" data-chat-topic="limits" data-i18n="chatTopicLimits">Limitations</button>
-        </div>
-        <form id="farmer-chat-form" class="farmer-chat-form">
-          <label class="sr-only" for="farmer-chat-input" data-i18n="chatInputLabel">Ask a question about the project</label>
-          <input id="farmer-chat-input" type="text" maxlength="400" autocomplete="off" data-i18n-placeholder="chatPlaceholder" placeholder="Type a question about the project">
-          <button type="submit" data-i18n="chatAsk">Ask</button>
-        </form>
-        <p class="chat-note" data-i18n="chatNote">This project guide uses built-in answers; it does not use generative AI or provide personalized farming instructions.</p>
-      </section>
-
       <section class="panel farm-profile">
         <div class="section-head compact-head">
           <div><p class="eyebrow" data-i18n="farmProfile">FARM PROFILE</p><h2 data-i18n="farmDetails">Farm details</h2></div>
@@ -562,8 +539,37 @@
       <p class="footnote">Earth-based chamber experiments are not microgravity experiments or spacecraft life-support systems. Report observations, methods, measurement units and limitations separately.</p>
     </section>
   </main>
+  <aside class="earthsignal-chat-widget">
+    <button id="farmer-chat-launcher" class="chat-launcher" type="button" aria-controls="farmer-chat-panel" aria-expanded="false">
+      <span aria-hidden="true">?</span>
+      <span data-i18n="chatTitle">Ask about EarthSignal</span>
+    </button>
+    <section id="farmer-chat-panel" class="panel farmer-chat-panel floating-chat-panel" aria-labelledby="farmer-chat-title" role="dialog" aria-modal="false" hidden>
+      <div class="chat-panel-header">
+        <div><p class="eyebrow">EARTHSIGNAL HELP</p><h2 id="farmer-chat-title" data-i18n="chatTitle">Ask about EarthSignal</h2></div>
+        <button id="farmer-chat-close" class="chat-close" type="button" data-i18n="chatClose" data-i18n-aria-label="chatClose">Close</button>
+      </div>
+      <p class="weather-intro" data-i18n="chatIntro">Ask what the project does, how the dashboards work, what the sensor measures, or what the research can and cannot tell you.</p>
+      <div id="farmer-chat-messages" class="farmer-chat-messages" role="log" aria-live="polite"></div>
+      <div id="farmer-chat-topics" class="farmer-chat-topics" aria-label="Suggested questions">
+        <button type="button" class="secondary-button" data-chat-topic="about" data-i18n="chatTopicAbout">What is EarthSignal?</button>
+        <button type="button" class="secondary-button" data-chat-topic="farmer" data-i18n="chatTopicFarmer">Farmer Dashboard</button>
+        <button type="button" class="secondary-button" data-chat-topic="research" data-i18n="chatTopicResearch">NASA data</button>
+        <button type="button" class="secondary-button" data-chat-topic="crop" data-i18n="chatTopicCrop">Crop research</button>
+        <button type="button" class="secondary-button" data-chat-topic="sensor" data-i18n="chatTopicSensor">Soil sensor</button>
+        <button type="button" class="secondary-button" data-chat-topic="impact" data-i18n="chatTopicImpact">Project impact</button>
+        <button type="button" class="secondary-button" data-chat-topic="limits" data-i18n="chatTopicLimits">Limitations</button>
+      </div>
+      <form id="farmer-chat-form" class="farmer-chat-form">
+        <label class="sr-only" for="farmer-chat-input" data-i18n="chatInputLabel">Ask a question about the project</label>
+        <input id="farmer-chat-input" type="text" maxlength="400" autocomplete="off" data-i18n-placeholder="chatPlaceholder" placeholder="Type a question about the project">
+        <button type="submit" data-i18n="chatAsk">Ask</button>
+      </form>
+      <p class="chat-note" data-i18n="chatNote">This project guide uses built-in answers; it does not use generative AI or provide personalized farming instructions.</p>
+    </section>
+  </aside>
   <script src="/static/app.js?v=15"></script>
-  <script src="/static/farmer-communications.js?v=2"></script>
+  <script src="/static/farmer-communications.js?v=4"></script>
   <script src="/static/farmer.js?v=9"></script>
   <script src="/static/experiments.js?v=3"></script>
 </body>
