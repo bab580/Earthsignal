@@ -200,3 +200,7 @@
 .space-review-references li{margin:7px 0;color:#52635b;font-size:12px;line-height:1.55}
 .space-review-references a{color:#174b3d}
 @media(max-width:760px){.space-review-highlights{grid-template-columns:1fr}}
+
+@media(max-width:1024px){.feature-list{grid-template-columns:repeat(3,minmax(0,1fr))}.data-engine-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.main-nav{overflow-x:auto;white-space:nowrap;scrollbar-width:thin}.section-head{align-items:flex-start;flex-wrap:wrap;gap:12px}.section-head>div{min-width:0}.section-head h2,.chart-heading h2{overflow-wrap:anywhere}.section-head>button,.section-head>.experiment-workspace-actions{width:100%}.experiment-workspace-actions>button{flex:1 1 180px}.table-scroll table{min-width:540px}}
+@media(max-width:480px){main{margin:22px auto;padding-right:14px;padding-left:14px}.topbar{min-height:64px;height:auto;padding:12px 14px}.topbar strong{font-size:12px}.topbar small{font-size:8px;letter-spacing:.06em}.main-nav{padding-right:8px;padding-left:8px}.panel{padding:15px}.section-head{flex-direction:column}.section-head>button,.section-head>.experiment-workspace-actions{width:100%}.experiment-workspace-actions>button{flex-basis:100%}.chart-heading select{width:100%;min-width:0}.live-tag{max-width:100%;white-space:normal;line-height:1.4}.farmer-chat-message{max-width:100%}}
