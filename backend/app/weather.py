@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from calendar import monthrange
 from datetime import date, datetime, timedelta, timezone
 import math
@@ -11,6 +12,7 @@ FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 WEATHER_TIMEOUT = 20.0
+logger = logging.getLogger(__name__)
 
 
 class WeatherServiceError(RuntimeError):
@@ -113,14 +115,25 @@ def trailing_dry_spell(dates: list[Any], values: list[Any], today: date) -> dict
 
 
 async def _get_json(client: httpx.AsyncClient, url: str, params: dict[str, Any]) -> dict[str, Any]:
+    provider = {
+        FORECAST_URL: "forecast",
+        ARCHIVE_URL: "historical rainfall",
+        GEOCODING_URL: "location search",
+    }.get(url, "weather")
     try:
         response = await client.get(url, params=params)
         response.raise_for_status()
         payload = response.json()
     except httpx.TimeoutException as exc:
-        raise WeatherServiceTimeout("Open-Meteo did not respond before the timeout. Please try again.") from exc
+        raise WeatherServiceTimeout(f"Open-Meteo {provider} request timed out. Please try again.") from exc
+    except httpx.HTTPStatusError as exc:
+        logger.warning("Open-Meteo %s service returned HTTP %s.", provider, exc.response.status_code)
+        raise WeatherServiceError(
+            f"Open-Meteo {provider} service returned HTTP {exc.response.status_code}. Please retry."
+        ) from exc
     except (httpx.HTTPError, ValueError) as exc:
-        raise WeatherServiceError("Could not retrieve valid weather data from Open-Meteo. Please retry.") from exc
+        logger.warning("Open-Meteo %s request failed (%s).", provider, type(exc).__name__)
+        raise WeatherServiceError(f"Could not retrieve valid Open-Meteo {provider} data. Please retry.") from exc
     if not isinstance(payload, dict) or payload.get("error"):
         raise WeatherServiceError("Open-Meteo returned an invalid weather response. Please retry.")
     return payload
@@ -286,12 +299,25 @@ async def fetch_weather(latitude: float, longitude: float) -> dict[str, Any]:
         "timezone": "auto",
     }
     async with httpx.AsyncClient(timeout=WEATHER_TIMEOUT) as client:
+        async def fetch_archive() -> dict[str, Any] | None:
+            try:
+                return await _get_json(client, ARCHIVE_URL, archive_params)
+            except WeatherServiceError as exc:
+                logger.warning("Historical rainfall is unavailable; returning current and forecast weather: %s", exc)
+                return None
+
         forecast_payload, archive_payload = await asyncio.gather(
             _get_json(client, FORECAST_URL, forecast_params),
-            _get_json(client, ARCHIVE_URL, archive_params),
+            fetch_archive(),
         )
+    history_unavailable = archive_payload is None
+    if history_unavailable:
+        archive_payload = {"daily": {"time": [], "precipitation_sum": []}}
     try:
-        return normalize_weather_response(forecast_payload, archive_payload, latitude, longitude, today)
+        result = normalize_weather_response(forecast_payload, archive_payload, latitude, longitude, today)
+        if history_unavailable:
+            result["warnings"] = ["historical_rainfall_unavailable"]
+        return result
     except (KeyError, TypeError, ValueError) as exc:
         if isinstance(exc, ValueError) and str(exc).startswith("Open-Meteo response"):
             raise WeatherServiceError(str(exc)) from exc

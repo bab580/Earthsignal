@@ -77,9 +77,15 @@
       .join(", ");
   }
 
-  function weatherStatus(message, isError = false) {
+  function weatherStatus(message, isError = false, isWarning = false) {
     $("weather-status").textContent = message;
     $("weather-status").classList.toggle("error", isError);
+    $("weather-status").classList.toggle("warning", !isError && isWarning);
+  }
+
+  function weatherNumber(value) {
+    const number = Number(value);
+    return value === null || value === undefined || !Number.isFinite(number) ? null : number;
   }
 
   function locationSearchStatus(message, isError = false) {
@@ -255,9 +261,207 @@
       rainfallElement.append(row);
     });
     $("weather-data").hidden = false;
-    $("weather-status").textContent = `${t("updatedLabel")} ${new Date(data.retrieved_at).toLocaleTimeString()} · ${data.location.timezone || "local time zone"}`;
-    $("weather-status").classList.remove("error");
+    const warnings = new Set(Array.isArray(data.warnings) ? data.warnings : []);
+    const warningMessages = [];
+    if (warnings.has("server_weather_fallback")) warningMessages.push(t("weatherDirectFallback"));
+    if (warnings.has("historical_rainfall_unavailable")) warningMessages.push(t("weatherHistoryUnavailable"));
+    const status = `${t("updatedLabel")} ${new Date(data.retrieved_at).toLocaleTimeString()} · ${data.location.timezone || "local time zone"}`;
+    weatherStatus(
+      warningMessages.length ? `${status} · ${warningMessages.join(" ")}` : status,
+      false,
+      warningMessages.length > 0
+    );
     renderFarmContext();
+  }
+
+  function rainfallHistoryPeriod(today) {
+    const [year, month] = today.split("-").map(Number);
+    const end = new Date(Date.UTC(year, month - 1, 0));
+    const start = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() - 11, 1));
+    const toIsoDate = date => date.toISOString().slice(0, 10);
+    return { start: toIsoDate(start), end: toIsoDate(end) };
+  }
+
+  async function getOpenMeteoJson(endpoint, params, label) {
+    let response;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      response = await fetch(`${endpoint}?${new URLSearchParams(params)}`, {
+        cache: "no-store",
+        signal: controller.signal
+      });
+    } catch (error) {
+      const reason = error.name === "AbortError" ? "timed out" : "could not be reached";
+      throw new Error(`Open-Meteo ${label} ${reason} from this browser.`);
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    let payload;
+    try {
+      payload = await response.json();
+    } catch {
+      throw new Error(`Open-Meteo ${label} returned an invalid response.`);
+    }
+    if (!response.ok) throw new Error(`Open-Meteo ${label} returned HTTP ${response.status}.`);
+    if (!payload || payload.error) {
+      throw new Error(`Open-Meteo ${label} returned invalid data.`);
+    }
+    return payload;
+  }
+
+  async function fetchWeatherFromBrowser(location) {
+    const forecastPayload = await getOpenMeteoJson(
+      "https://api.open-meteo.com/v1/forecast",
+      {
+        latitude: String(location.latitude),
+        longitude: String(location.longitude),
+        current: "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m",
+        daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max",
+        past_days: "30",
+        forecast_days: "7",
+        temperature_unit: "celsius",
+        wind_speed_unit: "kmh",
+        precipitation_unit: "mm",
+        timezone: "auto"
+      },
+      "forecast"
+    );
+    const current = forecastPayload.current;
+    const daily = forecastPayload.daily;
+    if (!current || !daily || !Array.isArray(daily.time)) {
+      throw new Error("Open-Meteo forecast returned incomplete data.");
+    }
+
+    const localToday = typeof current.time === "string" ? current.time.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const summaries = daily.time.map((date, index) => ({
+      date,
+      weather_code: daily.weather_code?.[index] ?? null,
+      temperature_max: weatherNumber(daily.temperature_2m_max?.[index]),
+      temperature_min: weatherNumber(daily.temperature_2m_min?.[index]),
+      precipitation_mm: weatherNumber(daily.precipitation_sum?.[index]),
+      precipitation_probability_max: weatherNumber(daily.precipitation_probability_max?.[index]),
+      wind_speed_max: weatherNumber(daily.wind_speed_10m_max?.[index])
+    })).filter(day => typeof day.date === "string");
+    const recent = summaries.filter(day => day.date < localToday).slice(-7);
+    const forecast = summaries.filter(day => day.date >= localToday).slice(0, 7);
+    const historyPeriod = rainfallHistoryPeriod(new Date().toISOString().slice(0, 10));
+    const warnings = ["server_weather_fallback"];
+    let rainfallHistory;
+
+    try {
+      const archivePayload = await getOpenMeteoJson(
+        "https://archive-api.open-meteo.com/v1/archive",
+        {
+          latitude: String(location.latitude),
+          longitude: String(location.longitude),
+          start_date: historyPeriod.start,
+          end_date: historyPeriod.end,
+          daily: "precipitation_sum",
+          precipitation_unit: "mm",
+          timezone: "auto"
+        },
+        "rainfall history"
+      );
+      const dates = archivePayload.daily?.time;
+      const values = archivePayload.daily?.precipitation_sum;
+      if (!Array.isArray(dates) || !Array.isArray(values) || dates.length !== values.length) {
+        throw new Error("Open-Meteo rainfall history returned incomplete data.");
+      }
+
+      const rainByDate = new Map(dates.map((date, index) => [date, weatherNumber(values[index])]));
+      const start = new Date(`${historyPeriod.start}T00:00:00Z`);
+      rainfallHistory = Array.from({ length: 12 }, (_, index) => {
+        const monthStart = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + index, 1));
+        const year = monthStart.getUTCFullYear();
+        const month = monthStart.getUTCMonth() + 1;
+        const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        let total = 0;
+        let validDays = 0;
+        for (let day = 1; day <= daysInMonth; day += 1) {
+          const value = rainByDate.get(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+          if (value !== null && value !== undefined && value >= 0) {
+            total += value;
+            validDays += 1;
+          }
+        }
+        return {
+          month: `${year}-${String(month).padStart(2, "0")}`,
+          precipitation_mm: validDays ? Math.round(total * 10) / 10 : null,
+          valid_days: validDays,
+          days_in_month: daysInMonth
+        };
+      });
+    } catch {
+      warnings.push("historical_rainfall_unavailable");
+      const start = new Date(`${historyPeriod.start}T00:00:00Z`);
+      rainfallHistory = Array.from({ length: 12 }, (_, index) => {
+        const monthStart = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + index, 1));
+        const year = monthStart.getUTCFullYear();
+        const month = monthStart.getUTCMonth() + 1;
+        return {
+          month: `${year}-${String(month).padStart(2, "0")}`,
+          precipitation_mm: null,
+          valid_days: 0,
+          days_in_month: new Date(Date.UTC(year, month, 0)).getUTCDate()
+        };
+      });
+    }
+
+    const recentRain = summaries.filter(day => day.date < localToday);
+    const asOf = recentRain.length ? recentRain[recentRain.length - 1] : null;
+    let dryDays = 0;
+    let dryStart = null;
+    let expectedDay = null;
+    for (let index = recentRain.length - 1; index >= 0; index -= 1) {
+      const day = recentRain[index];
+      if (expectedDay && day.date !== expectedDay) break;
+      if (day.precipitation_mm === null || day.precipitation_mm < 0 || day.precipitation_mm >= 1) break;
+      dryDays += 1;
+      dryStart = day.date;
+      const previous = new Date(`${day.date}T00:00:00Z`);
+      previous.setUTCDate(previous.getUTCDate() - 1);
+      expectedDay = previous.toISOString().slice(0, 10);
+    }
+
+    return {
+      source: "Open-Meteo",
+      forecast_source_url: "https://open-meteo.com/en/docs",
+      archive_source_url: "https://open-meteo.com/en/docs/historical-weather-api",
+      retrieved_at: new Date().toISOString(),
+      location: {
+        latitude: weatherNumber(forecastPayload.latitude) ?? location.latitude,
+        longitude: weatherNumber(forecastPayload.longitude) ?? location.longitude,
+        timezone: forecastPayload.timezone
+      },
+      units: {
+        temperature: forecastPayload.current_units?.temperature_2m || "°C",
+        precipitation: forecastPayload.current_units?.precipitation || "mm",
+        wind_speed: forecastPayload.current_units?.wind_speed_10m || "km/h"
+      },
+      current: {
+        time: current.time,
+        temperature: weatherNumber(current.temperature_2m),
+        apparent_temperature: weatherNumber(current.apparent_temperature),
+        relative_humidity: weatherNumber(current.relative_humidity_2m),
+        precipitation_mm: weatherNumber(current.precipitation),
+        weather_code: current.weather_code ?? null,
+        is_day: current.is_day ?? null,
+        wind_speed: weatherNumber(current.wind_speed_10m)
+      },
+      recent_days: recent,
+      forecast,
+      rainfall_history: rainfallHistory,
+      recent_dry_spell: {
+        days: dryDays,
+        start: dryStart,
+        as_of: asOf ? asOf.date : null,
+        threshold_mm_per_day: 1
+      },
+      history_period: historyPeriod,
+      warnings
+    };
   }
 
   async function refreshWeather() {
@@ -274,9 +478,22 @@
         latitude: String(weatherLocation.latitude),
         longitude: String(weatherLocation.longitude)
       });
-      const response = await fetch(earthSignalApiUrl(`/api/weather?${query}`), { cache: "no-store" });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail || "Could not retrieve weather data.");
+      let payload;
+      try {
+        const response = await fetch(earthSignalApiUrl(`/api/weather?${query}`), { cache: "no-store" });
+        const serverPayload = await response.json();
+        if (!response.ok) throw new Error(serverPayload.detail || "The server weather request failed.");
+        payload = serverPayload;
+      } catch (serverError) {
+        if (requestId !== weatherRequestId) return;
+        try {
+          payload = await fetchWeatherFromBrowser(weatherLocation);
+        } catch (browserError) {
+          const serverMessage = serverError instanceof Error ? serverError.message : "The server weather request failed.";
+          const browserMessage = browserError instanceof Error ? browserError.message : "The browser weather fallback failed.";
+          throw new Error(`${serverMessage} ${browserMessage}`);
+        }
+      }
       if (requestId !== weatherRequestId) return;
       weatherData = payload;
       renderWeather(payload);

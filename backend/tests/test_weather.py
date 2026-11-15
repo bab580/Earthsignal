@@ -1,14 +1,20 @@
-from datetime import date
+import asyncio
+from datetime import date, datetime, timezone
 
 from fastapi.testclient import TestClient
 
 from backend.app import main as app_module
 from backend.app.weather import (
+    ARCHIVE_URL,
+    FORECAST_URL,
+    WeatherServiceError,
+    fetch_weather,
     normalize_weather_response,
     rainfall_history_period,
     summarize_monthly_rainfall,
     trailing_dry_spell,
 )
+from backend.app import weather as weather_module
 
 
 def test_rainfall_history_uses_twelve_complete_calendar_months():
@@ -138,3 +144,37 @@ def test_weather_location_route_returns_global_search_results(tmp_path, monkeypa
 
     assert response.status_code == 200
     assert response.json()["results"][0]["name"] == "Lira"
+
+
+def test_weather_still_returns_forecast_when_archive_is_unavailable(monkeypatch):
+    today = datetime.now(timezone.utc).date()
+    forecast_payload = {
+        "timezone": "Africa/Kampala",
+        "current": {"time": today.isoformat(), "temperature_2m": 27},
+        "current_units": {},
+        "daily": {
+            "time": [today.isoformat()],
+            "weather_code": [0],
+            "temperature_2m_max": [30],
+            "temperature_2m_min": [20],
+            "precipitation_sum": [0],
+            "precipitation_probability_max": [0],
+            "wind_speed_10m_max": [10],
+        },
+    }
+
+    async def fake_get_json(_client, url, _params):
+        if url == FORECAST_URL:
+            return forecast_payload
+        if url == ARCHIVE_URL:
+            raise WeatherServiceError("Archive is unavailable.")
+        raise AssertionError(f"Unexpected weather URL: {url}")
+
+    monkeypatch.setattr(weather_module, "_get_json", fake_get_json)
+    result = asyncio.run(fetch_weather(2.2499, 32.8998))
+
+    assert result["current"]["temperature"] == 27
+    assert len(result["forecast"]) == 1
+    assert result["warnings"] == ["historical_rainfall_unavailable"]
+    assert len(result["rainfall_history"]) == 12
+    assert all(month["precipitation_mm"] is None for month in result["rainfall_history"])

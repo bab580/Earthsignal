@@ -112,6 +112,7 @@ Returns Open-Meteo current conditions, up to 7 recent daily summaries, up to 7 f
   "rainfall_history": [
     {"month": "YYYY-MM", "precipitation_mm": 0.0, "valid_days": 30, "days_in_month": 30}
   ],
+  "warnings": [],
   "recent_dry_spell": {
     "days": 0,
     "start": null,
@@ -123,6 +124,7 @@ Returns Open-Meteo current conditions, up to 7 recent daily summaries, up to 7 f
 ```
 
 Open-Meteo requires no API key. The Farmer Dashboard displays source attribution. Weather and rainfall context is advisory, not an official alert, crop calendar, crop-water-stress diagnosis or irrigation schedule.
+If the archive service is unavailable, the endpoint still returns current conditions and forecast data. Rainfall history then has `null` monthly totals and `0` valid days, and `warnings` contains `historical_rainfall_unavailable`.
 
 Errors:
 - 422: malformed queries or coordinates outside the accepted latitude/longitude ranges.

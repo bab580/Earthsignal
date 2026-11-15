@@ -13,6 +13,7 @@ FastAPI application
   |-- /api/earth        validates query and requests NASA POWER
   |-- /api/modis        authenticates with NASA Earthdata and samples MODIS via AppEEARS
   |-- /api/weather      requests current conditions, forecast and rainfall history from Open-Meteo
+  |-- Farmer weather falls back to direct browser requests if the weather API fails
   |-- /api/weather/locations  searches global place names through Open-Meteo geocoding
   |-- /api/sensors/readings  validates and stores ESP32 readings in SQLite
   |-- /api/sensors/latest    retrieves the latest reading for a device
@@ -69,6 +70,8 @@ Manual measurements or supported sensor clients
           |
           +--> Space Crop Research workspace and descriptive analysis
 ```
+
+If `/api/weather` fails, the Farmer Dashboard retries the public Open-Meteo forecast and archive APIs directly from the browser; no API key is required.
 
 ## Design choices
 - A single FastAPI service keeps the first release simple.
