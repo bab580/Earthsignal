@@ -1309,6 +1309,17 @@
     }
   };
 
+  const chatUiTranslations = {
+    en: { chatClose: "Close" },
+    lg: { chatClose: "Ggalawo" },
+    sw: { chatClose: "Funga" },
+    luo: { chatClose: "Lor" },
+    ach: { chatClose: "Lor" },
+    xog: { chatClose: "Ggalawo" },
+    nyn: { chatClose: "Igara" },
+    myx: { chatClose: "Ggalawo" }
+  };
+
   const categories = {
     impact: ["impact", "helpful", "benefit", "value", "kony", "omugasho", "enkosa", "athari", "faida"],
     about: ["project", "earthsignal", "what is", "purojekiti", "mradi", "gima", "tich", "purojekiti", "nini"],
@@ -1340,6 +1351,7 @@
     return (
       (languages[language] && languages[language][key]) ||
       (liveTranslations[language] && liveTranslations[language][key]) ||
+      (chatUiTranslations[language] && chatUiTranslations[language][key]) ||
       (liveTranslations.en && liveTranslations.en[key]) ||
       languages.en[key] ||
       key
@@ -1359,6 +1371,9 @@
     document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
       const value = text(element.dataset.i18nPlaceholder);
       if (value) element.placeholder = value;
+    });
+    document.querySelectorAll("[data-i18n-aria-label]").forEach(element => {
+      element.setAttribute("aria-label", text(element.dataset.i18nAriaLabel));
     });
   }
 
@@ -1404,6 +1419,21 @@
   language = languageSelect.value;
   applyLanguage();
   addChatMessage(text("chatWelcome"), "assistant");
+
+  const chatPanel = document.getElementById("farmer-chat-panel");
+  const chatLauncher = document.getElementById("farmer-chat-launcher");
+  function setChatOpen(open) {
+    chatPanel.hidden = !open;
+    chatLauncher.setAttribute("aria-expanded", String(open));
+    if (open) document.getElementById("farmer-chat-input").focus();
+    else chatLauncher.focus();
+  }
+
+  chatLauncher.addEventListener("click", () => setChatOpen(chatPanel.hidden));
+  document.getElementById("farmer-chat-close").addEventListener("click", () => setChatOpen(false));
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !chatPanel.hidden) setChatOpen(false);
+  });
 
   languageSelect.addEventListener("change", () => {
     language = languageSelect.value;
