@@ -127,6 +127,55 @@
 .weather-attribution{margin:16px 0 0;color:#64736c;font-size:11px}
 .weather-attribution a{color:#174b3d}
 .farmer-advisory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+
+.floating-chat-panel{position:fixed;right:22px;bottom:82px;display:flex;width:min(460px,calc(100vw - 32px));height:min(660px,calc(100vh - 112px));height:min(660px,calc(100dvh - 112px));max-height:none;flex-direction:column;overflow:hidden;padding:0;border:1px solid #d6e2dc;border-radius:16px;box-shadow:0 18px 52px rgba(20,55,43,.28)}
+.chat-panel-header{display:flex;flex:0 0 auto;align-items:flex-start;justify-content:space-between;gap:12px;margin:0;padding:16px 18px;background:#174b3d;color:#fff}
+.chat-panel-brand{display:flex;min-width:0;align-items:flex-start;gap:11px}
+.chat-panel-avatar{display:grid;flex:0 0 40px;width:40px;height:40px;place-items:center;border:1px solid rgba(255,255,255,.55);border-radius:12px;background:rgba(255,255,255,.12);color:#fff;font-size:16px;font-weight:800}
+.chat-panel-heading{min-width:0}
+.chat-panel-eyebrow{margin:0 0 4px;color:#c8e1d5;font-size:10px;font-weight:800;letter-spacing:.1em}
+.chat-panel-heading h2{margin:0;color:#fff;font-size:18px}
+.chat-panel-subtitle{margin:4px 0 0;color:#e0eee8;font-size:12px;line-height:1.45}
+.chat-close{display:grid;flex:0 0 38px;width:38px;height:38px;place-items:center;padding:0;border:1px solid rgba(255,255,255,.45);border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font-size:25px;line-height:1}
+.chat-close:hover{background:rgba(255,255,255,.22)}
+.chat-conversation{display:flex;min-height:0;flex:1 1 0;flex-direction:column;gap:12px;padding:14px 16px 12px}
+.floating-chat-panel .farmer-chat-messages{display:flex;min-height:0;max-height:none;flex:1 1 0;flex-direction:column;gap:14px;overflow:auto;padding:6px 2px;border:0;border-radius:0;background:#fff;overscroll-behavior:contain}
+.chat-message-row{display:flex;width:100%;align-items:flex-start;gap:9px}
+.chat-assistant-row{justify-content:flex-start}
+.chat-user-row{justify-content:flex-end}
+.chat-message-avatar{display:grid;flex:0 0 30px;width:30px;height:30px;place-items:center;border-radius:50%;background:#174b3d;color:#fff;font-size:12px;font-weight:800}
+.farmer-chat-message{max-width:min(86%,380px);padding:11px 14px;border:1px solid transparent;border-radius:14px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.chat-assistant{border-color:#e0eae4;border-top-left-radius:4px;background:#eef4f1;color:#20362e}
+.chat-user{border-top-right-radius:4px;background:#174b3d;color:#fff}
+.farmer-chat-topics{display:flex;flex:0 0 auto;flex-wrap:wrap;gap:7px;margin:0}
+.farmer-chat-topics button{min-height:38px;height:auto;flex:0 1 auto;padding:8px 12px;border:1px solid #d6e2dc;border-radius:999px;background:#f7faf8;color:#315b49;font-size:12px;line-height:1.35}
+.farmer-chat-topics button:hover{border-color:#9bb8a9;background:#edf5f0}
+.farmer-chat-form{display:block;flex:0 0 auto;margin:0}
+.chat-search-field{display:flex;min-height:54px;align-items:center;gap:9px;padding:5px 6px 5px 14px;border:1px solid #bdcec4;border-radius:14px;background:#fff;box-shadow:0 2px 8px rgba(23,75,61,.06)}
+.chat-search-field:focus-within{border-color:#24765b;box-shadow:0 0 0 3px rgba(36,118,91,.14)}
+.chat-search-icon{flex:0 0 20px;width:20px;height:20px;fill:none;stroke:#718078;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8}
+.chat-search-field input{width:100%;min-width:0;height:42px;border:0;border-radius:0;background:transparent;padding:0 2px;box-shadow:none;color:#17231f;font:inherit;outline:0}
+.chat-search-field input:focus{border:0;box-shadow:none;outline:0}
+.chat-search-field input::placeholder{color:#718078;opacity:1}
+.chat-search-field input::-webkit-search-cancel-button{cursor:pointer}
+.chat-send-button{display:grid;flex:0 0 42px;width:42px;height:42px;place-items:center;padding:0;border-radius:11px;background:#174b3d;color:#fff}
+.chat-send-button:hover{background:#21634f}
+.chat-send-button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8}
+.chat-note{margin:0;color:#6b7b72;font-size:10px;line-height:1.45}
+@media(max-width:600px){
+  .earthsignal-chat-widget{right:8px;bottom:8px}
+  .floating-chat-panel{left:8px;right:8px;bottom:72px;width:auto;height:min(82vh,680px);height:min(82dvh,680px);max-height:calc(100vh - 88px);max-height:calc(100dvh - 88px)}
+  .chat-panel-header{gap:8px;padding:14px}
+  .chat-panel-avatar{flex-basis:36px;width:36px;height:36px}
+  .chat-panel-heading h2{font-size:16px}
+  .chat-panel-subtitle{font-size:11px}
+  .chat-conversation{gap:10px;padding:12px}
+  .floating-chat-panel .farmer-chat-messages{min-height:0}
+  .farmer-chat-topics{gap:6px}
+  .farmer-chat-topics button{flex:1 1 130px;padding:8px 10px;font-size:11px}
+  .chat-search-field{min-height:52px}
+  .chat-search-field input{font-size:14px}
+}
 .farmer-advisory-grid article{background:#f4f7f5;border:1px solid #dce4df;border-radius:9px;padding:15px}
 .farmer-advisory-grid h3{margin:0 0 7px;font-size:14px}
 .farmer-advisory-grid p{margin:0}

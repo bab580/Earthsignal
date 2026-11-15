@@ -16,7 +16,7 @@
       chatTopicSensor: "Soil sensor",
       chatTopicLimits: "Limitations",
       chatInputLabel: "Ask a question about the project",
-      chatPlaceholder: "Type a question about the project",
+      chatPlaceholder: "Search or ask about EarthSignal",
       chatAsk: "Ask",
       chatNote: "This project guide uses built-in answers; it does not use generative AI or provide personalized farming instructions.",
       farmProfile: "FARM PROFILE",
@@ -1380,11 +1380,22 @@
   }
 
   function addChatMessage(message, kind) {
+    const row = document.createElement("div");
+    row.className = `chat-message-row chat-${kind}-row`;
+    if (kind === "assistant") {
+      const avatar = document.createElement("span");
+      avatar.className = "chat-message-avatar";
+      avatar.setAttribute("aria-hidden", "true");
+      avatar.textContent = "E";
+      row.append(avatar);
+    }
+
     const item = document.createElement("p");
     item.className = `farmer-chat-message chat-${kind}`;
     item.textContent = message;
-    document.getElementById("farmer-chat-messages").append(item);
-    item.scrollIntoView({ block: "nearest" });
+    row.append(item);
+    document.getElementById("farmer-chat-messages").append(row);
+    row.scrollIntoView({ block: "nearest" });
   }
 
   function answerTopic(topic, question) {
