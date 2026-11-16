@@ -196,9 +196,13 @@
 .research-brief-note,.comparison-note,.comparison-status,.comparison-summary,.event-summary,.event-empty{font-size:12px;line-height:1.6;color:#607068}
 .research-brief-note{margin-bottom:0}
 .comparison-panel .section-head{margin:0 0 12px}
-.comparison-locations{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0}
-.comparison-locations label{display:flex;align-items:center;gap:7px;background:#f4f7f5;border:1px solid #dfe8e4;border-radius:8px;padding:10px;font-size:12px;color:#33463d}
-.comparison-locations input{accent-color:#24765b}
+.comparison-location-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;align-items:end;margin-top:12px}
+.comparison-location-search button{min-height:42px}
+.comparison-selected-title{margin:18px 0 8px;font-size:14px}
+.comparison-locations{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.comparison-location-chip{display:flex;align-items:center;gap:10px;border:1px solid #dfe8e4;border-radius:999px;background:#f4f7f5;padding:6px 8px 6px 12px;font-size:12px;color:#33463d}
+.comparison-location-remove{min-height:28px;padding:4px 8px;border:1px solid #cbd9d1;border-radius:999px;background:#fff;color:#315b49;font-size:11px}
+.comparison-empty{margin:0;color:#64736c;font-size:12px}
 .comparison-status{margin:10px 0 0}
 .comparison-status.success{color:#146b49}
 .comparison-status.error{color:#a22e2e}
@@ -213,8 +217,8 @@
 .table-scroll th,.table-scroll td{text-align:left;padding:10px 12px;border-bottom:1px solid #e7ece8;vertical-align:top}
 .table-scroll th{position:sticky;top:0;background:#f4f7f5;color:#33463d;font-size:11px}
 .table-scroll tr:last-child td{border-bottom:0}
-@media(max-width:760px){.comparison-locations{grid-template-columns:repeat(2,minmax(0,1fr))}.event-heading{align-items:flex-start;flex-direction:column}.event-filter{width:100%}}
-@media(max-width:460px){.comparison-locations{grid-template-columns:1fr}.comparison-panel .section-head{align-items:flex-start;flex-direction:column}}
+@media(max-width:760px){.event-heading{align-items:flex-start;flex-direction:column}.event-filter{width:100%}}
+@media(max-width:460px){.comparison-panel .section-head{align-items:flex-start;flex-direction:column}.comparison-location-search{grid-template-columns:1fr}.comparison-location-search button{width:100%}}
 
 .experiment-create-panel,.experiment-workspace,.habitat-panel,.crop-profiles-panel{margin-bottom:16px}
 .experiment-workspace-actions{display:flex;flex-wrap:wrap;gap:8px}

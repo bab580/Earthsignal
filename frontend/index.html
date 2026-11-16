@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EarthSignal — Earth and Space Food Resilience Research</title>
-  <link rel="stylesheet" href="/static/styles.css?v=13">
+  <link rel="stylesheet" href="/static/styles.css?v=15">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="/static/config.js"></script>
 </head>
@@ -87,14 +87,18 @@
           <div><p class="eyebrow">LOCATION COMPARISON</p><h2 id="comparison-title">Compare selected points</h2></div>
           <button id="compare-locations" type="button">Compare selected</button>
         </div>
-        <p class="comparison-note">Select Uganda points for the same dates. Global searches can be loaded as the primary research location. These are point samples, not district or region-wide averages.</p>
-        <div class="comparison-locations" role="group" aria-label="Locations to compare">
-          <label><input type="checkbox" name="compare-location" value="0.3476,32.5825"> Kampala</label>
-          <label><input type="checkbox" name="compare-location" value="2.2499,32.8998"> Lira</label>
-          <label><input type="checkbox" name="compare-location" value="2.7746,32.2990"> Gulu</label>
-          <label><input type="checkbox" name="compare-location" value="1.0821,34.1750"> Mbale</label>
-          <label><input type="checkbox" name="compare-location" value="-0.6067,30.6545"> Mbarara</label>
+        <p class="comparison-note">Search for comparison points anywhere in the world. Comparisons use the same dates and are point samples, not district or region-wide averages.</p>
+        <div class="comparison-location-search">
+          <div class="field">
+            <label for="comparison-location-query">Search a city, region or country to compare</label>
+            <input id="comparison-location-query" type="search" placeholder="e.g. Kampala, Uganda or Nairobi, Kenya" autocomplete="off">
+          </div>
+          <button id="comparison-location-search-button" type="button">Find places</button>
         </div>
+        <p id="comparison-location-search-status" class="location-search-status" role="status" aria-live="polite"></p>
+        <div id="comparison-location-results" class="location-search-results" role="group" aria-label="Global comparison place results" hidden></div>
+        <h3 class="comparison-selected-title">Selected comparison points</h3>
+        <div id="comparison-locations" class="comparison-locations" role="list" aria-label="Selected comparison locations"></div>
         <p id="comparison-status" class="comparison-status" role="status">Choose other locations to compare against the selected point.</p>
         <div id="comparison-results" hidden>
           <p id="comparison-summary" class="comparison-summary"></p>
@@ -585,9 +589,9 @@
       </div>
     </section>
   </aside>
-  <script src="/static/app.js?v=15"></script>
-  <script src="/static/farmer-communications.js?v=7"></script>
-  <script src="/static/farmer.js?v=11"></script>
+  <script src="/static/app.js?v=16"></script>
+  <script src="/static/farmer-communications.js?v=8"></script>
+  <script src="/static/farmer.js?v=12"></script>
   <script src="/static/experiments.js?v=3"></script>
 </body>
 </html>

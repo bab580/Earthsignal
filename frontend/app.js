@@ -2,6 +2,8 @@ let currentData = null;
 let chart = null;
 let currentComparisons = [];
 let currentRainfallEvents = null;
+const selectedComparisonLocations = new Map();
+let comparisonSearchResults = [];
 
 const places = {
   "0.3476,32.5825": "Kampala",
@@ -9,6 +11,14 @@ const places = {
   "2.7746,32.2990": "Gulu",
   "1.0821,34.1750": "Mbale",
   "-0.6067,30.6545": "Mbarara"
+};
+
+const placeCountries = {
+  "0.3476,32.5825": "Uganda",
+  "2.2499,32.8998": "Uganda",
+  "2.7746,32.2990": "Uganda",
+  "1.0821,34.1750": "Uganda",
+  "-0.6067,30.6545": "Uganda"
 };
 
 const metricInfo = {
@@ -61,6 +71,13 @@ function researchLocationLabel(location) {
     .join(", ");
 }
 
+async function fetchResearchLocations(query) {
+  const response = await fetch(earthSignalApiUrl(`/api/weather/locations?query=${encodeURIComponent(query)}`));
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.detail || "Could not search global locations.");
+  return Array.isArray(payload.results) ? payload.results : [];
+}
+
 async function searchResearchLocations() {
   const query = $("research-location-query").value.trim();
   const resultsElement = $("research-location-results");
@@ -78,10 +95,7 @@ async function searchResearchLocations() {
   status.className = "location-search-status";
   status.textContent = "Searching global place names…";
   try {
-    const response = await fetch(earthSignalApiUrl(`/api/weather/locations?query=${encodeURIComponent(query)}`));
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.detail || "Could not search global locations.");
-    const locations = Array.isArray(payload.results) ? payload.results : [];
+    const locations = await fetchResearchLocations(query);
     if (locations.length === 0) {
       status.textContent = "No matching places found. Try adding a country or nearby city.";
       return;
@@ -106,6 +120,118 @@ async function searchResearchLocations() {
   }
 }
 
+async function searchComparisonLocations() {
+  const query = $("comparison-location-query").value.trim();
+  const resultsElement = $("comparison-location-results");
+  const status = $("comparison-location-search-status");
+  const button = $("comparison-location-search-button");
+  resultsElement.replaceChildren();
+  resultsElement.hidden = true;
+  if (query.length < 2) {
+    comparisonSearchResults = [];
+    status.textContent = "Enter at least two characters to search for a comparison place.";
+    status.className = "location-search-status error";
+    return;
+  }
+
+  comparisonSearchResults = [];
+  button.disabled = true;
+  status.className = "location-search-status";
+  status.textContent = "Searching global place names…";
+  try {
+    comparisonSearchResults = await fetchResearchLocations(query);
+    if (comparisonSearchResults.length === 0) {
+      status.textContent = "No matching places found. Try adding a country or nearby city.";
+      return;
+    }
+    renderComparisonSearchResults();
+    resultsElement.hidden = false;
+    status.textContent = `${comparisonSearchResults.length} matching places found. Add one or more points to compare.`;
+  } catch (error) {
+    status.textContent = error.message;
+    status.className = "location-search-status error";
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function renderComparisonSearchResults() {
+  const resultsElement = $("comparison-location-results");
+  resultsElement.replaceChildren();
+  const primaryKey = $("place").value;
+  comparisonSearchResults.forEach(location => {
+    const key = `${Number(location.latitude)},${Number(location.longitude)}`;
+    const alreadySelected = selectedComparisonLocations.has(key);
+    const isPrimary = key === primaryKey;
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "location-search-option";
+    option.disabled = alreadySelected || isPrimary;
+    option.textContent = `${researchLocationLabel(location)} (${Number(location.latitude).toFixed(4)}, ${Number(location.longitude).toFixed(4)})${isPrimary ? " — primary location" : alreadySelected ? " — added" : " — add"}`;
+    option.addEventListener("click", () => {
+      if (selectedComparisonLocations.has(key) || key === $("place").value) return;
+      selectedComparisonLocations.set(key, location);
+      renderSelectedComparisonLocations();
+      renderComparisonSearchResults();
+      $("comparison-results").hidden = true;
+      currentComparisons = [];
+      $("comparison-status").textContent = `Added ${researchLocationLabel(location)}. Run Compare selected to load its data.`;
+    });
+    resultsElement.append(option);
+  });
+}
+
+function renderSelectedComparisonLocations() {
+  const container = $("comparison-locations");
+  container.replaceChildren();
+  selectedComparisonLocations.forEach((location, key) => {
+    const item = document.createElement("div");
+    item.className = "comparison-location-chip";
+    item.setAttribute("role", "listitem");
+    const name = document.createElement("span");
+    name.textContent = researchLocationLabel(location);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "comparison-location-remove";
+    remove.textContent = "Remove";
+    remove.setAttribute("aria-label", `Remove ${researchLocationLabel(location)} from comparisons`);
+    remove.addEventListener("click", () => {
+      selectedComparisonLocations.delete(key);
+      renderSelectedComparisonLocations();
+      renderComparisonSearchResults();
+      $("comparison-results").hidden = true;
+      currentComparisons = [];
+      $("comparison-status").textContent = "Comparison points changed. Run Compare selected to refresh the results.";
+    });
+    item.append(name, remove);
+    container.append(item);
+  });
+  if (selectedComparisonLocations.size === 0) {
+    const empty = document.createElement("p");
+    empty.className = "comparison-empty";
+    empty.textContent = "Search above and add locations to compare.";
+    container.append(empty);
+  }
+}
+
+function clearComparisonLocations() {
+  selectedComparisonLocations.clear();
+  renderSelectedComparisonLocations();
+  renderComparisonSearchResults();
+}
+
+function updateComparisonSearchCountry(country) {
+  const input = $("comparison-location-query");
+  input.value = "";
+  input.placeholder = country ? `Search a city or region in ${country}` : "e.g. Kampala, Uganda or Nairobi, Kenya";
+  comparisonSearchResults = [];
+  $("comparison-location-results").replaceChildren();
+  $("comparison-location-results").hidden = true;
+  $("comparison-location-search-status").textContent = country
+    ? `Primary location is in ${country}. Search for another place to compare.`
+    : "Search for a city, region or country to add comparison points.";
+}
+
 function selectResearchLocation(location) {
   const latitude = Number(location.latitude);
   const longitude = Number(location.longitude);
@@ -119,8 +245,11 @@ function selectResearchLocation(location) {
   }
   option.textContent = `${name} (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
   places[key] = name;
+  placeCountries[key] = location.country || "";
   $("place").value = key;
   $("research-location-query").value = name;
+  clearComparisonLocations();
+  updateComparisonSearchCountry(placeCountries[key]);
   $("research-location-results").replaceChildren();
   $("research-location-results").hidden = true;
   $("research-location-status").className = "location-search-status";
@@ -148,7 +277,7 @@ async function fetchEarthData(latitude, longitude, start, end) {
 function render(data) {
   $("results").hidden = false;
   $("comparison-results").hidden = true;
-  $("comparison-status").textContent = "Choose other locations to compare against the selected point.";
+  $("comparison-status").textContent = "Search for global locations to compare against the selected point.";
   $("metric").value = "PRECTOTCORR";
   setModisOptionsEnabled(false);
   $("modis-status").textContent = "MODIS point data is free through NASA AppEEARS, but requires a NASA Earthdata Login configured locally.";
@@ -253,11 +382,10 @@ async function compareLocations() {
     return;
   }
 
-  const selectedKeys = Array.from(document.querySelectorAll('input[name="compare-location"]:checked'))
-    .map(input => input.value)
-    .filter(key => key !== currentKey);
-  if (!selectedKeys.length) {
-    status.textContent = "Select at least one location other than the primary point.";
+  const selectedLocations = Array.from(selectedComparisonLocations.entries())
+    .filter(([key]) => key !== currentKey);
+  if (!selectedLocations.length) {
+    status.textContent = "Search and add at least one location other than the primary point.";
     return;
   }
 
@@ -265,14 +393,13 @@ async function compareLocations() {
   button.disabled = true;
   $("comparison-results").hidden = true;
   status.className = "comparison-status";
-  status.textContent = `Loading ${selectedKeys.length} comparison point${selectedKeys.length === 1 ? "" : "s"} from NASA POWER…`;
+  status.textContent = `Loading ${selectedLocations.length} comparison point${selectedLocations.length === 1 ? "" : "s"} from NASA POWER…`;
 
   try {
-    const additionalSites = await Promise.all(selectedKeys.map(async key => {
-      const [latitude, longitude] = key.split(",").map(Number);
+    const additionalSites = await Promise.all(selectedLocations.map(async ([, location]) => {
       return {
-        name: places[key],
-        data: await fetchEarthData(latitude, longitude, start, end)
+        name: researchLocationLabel(location),
+        data: await fetchEarthData(Number(location.latitude), Number(location.longitude), start, end)
       };
     }));
     currentComparisons = [
@@ -747,10 +874,18 @@ $("load-modis").addEventListener("click", loadModis);
 $("download-report").addEventListener("click", downloadReport);
 $("compare-locations").addEventListener("click", compareLocations);
 $("research-location-search-button").addEventListener("click", searchResearchLocations);
+$("comparison-location-search-button").addEventListener("click", searchComparisonLocations);
+renderSelectedComparisonLocations();
 $("research-location-query").addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     event.preventDefault();
     searchResearchLocations();
+  }
+});
+$("comparison-location-query").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    searchComparisonLocations();
   }
 });
 $("event-filter").addEventListener("change", () => {
@@ -760,6 +895,8 @@ $("event-filter").addEventListener("change", () => {
 });
 $("place").addEventListener("change", () => {
   const name = places[$("place").value];
+  clearComparisonLocations();
+  updateComparisonSearchCountry(placeCountries[$("place").value]);
   if (name) {
     $("research-location-status").className = "location-search-status";
     $("research-location-status").textContent = `Selected ${name}. Load NASA data to retrieve its observations.`;
