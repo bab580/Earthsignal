@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EarthSignal — Earth and Space Food Resilience Research</title>
-  <link rel="stylesheet" href="/static/styles.css?v=15">
+  <link rel="stylesheet" href="/static/styles.css?v=16">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="/static/config.js"></script>
 </head>
@@ -324,6 +324,23 @@
           <div id="moisture-bar" class="moisture-fill"></div>
         </div>
         <p class="farmer-note" data-i18n="soilMoistureNote">Soil moisture is shown only when an actual sensor reading has been received. The firmware-reported percentage is calculated from calibrated analog values. Verify calibration against the specific probe and soil before using the percentage for decisions.</p>
+        <section class="sensor-history" aria-labelledby="sensor-history-title">
+          <h3 id="sensor-history-title" data-i18n="sensorHistoryTitle">Recent sensor readings</h3>
+          <p id="sensor-history-status" class="sensor-history-status" role="status" aria-live="polite">No readings received yet.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="sensorHistoryTime">Time</th>
+                  <th scope="col" data-i18n="sensorHistoryMoisture">Soil moisture</th>
+                  <th scope="col" data-i18n="sensorHistoryRaw">Raw value</th>
+                  <th scope="col" data-i18n="sensorHistoryState">Status</th>
+                </tr>
+              </thead>
+              <tbody id="sensor-history-rows"></tbody>
+            </table>
+          </div>
+        </section>
       </section>
 
       <section class="panel farmer-guidance">
@@ -590,8 +607,8 @@
     </section>
   </aside>
   <script src="/static/app.js?v=16"></script>
-  <script src="/static/farmer-communications.js?v=8"></script>
-  <script src="/static/farmer.js?v=12"></script>
+  <script src="/static/farmer-communications.js?v=9"></script>
+  <script src="/static/farmer.js?v=13"></script>
   <script src="/static/experiments.js?v=3"></script>
 </body>
 </html>

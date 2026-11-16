@@ -29,6 +29,15 @@
 .moisture-track{height:12px;background:#e8eeea;border-radius:20px;overflow:hidden;margin:18px 0 10px}
 .moisture-fill{height:100%;width:0;background:#24765b;border-radius:20px;transition:width .25s ease}
 .farmer-note{font-size:12px;color:#6b7972;line-height:1.6}
+.sensor-history{margin-top:22px}
+.sensor-history h3{margin:0 0 8px;font-size:16px}
+.sensor-history-status{margin:0 0 10px;color:#64736c;font-size:12px}
+.sensor-history-status.error{color:#a22e2e}
+.sensor-history .table-scroll{max-height:none}
+.sensor-history table{width:100%;border-collapse:collapse;font-size:12px}
+.sensor-history th,.sensor-history td{padding:10px 12px;border-bottom:1px solid #e7ece8;text-align:left}
+.sensor-history th{background:#f4f7f5;color:#33463d;font-size:11px}
+.sensor-history tr:last-child td{border-bottom:0}
 .farmer-guidance{margin-bottom:16px}
 .farmer-guidance p:not(.eyebrow){font-size:13px;line-height:1.7;color:#586a62}
 @media(max-width:800px){.farm-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.farmer-stats{grid-template-columns:1fr}}
