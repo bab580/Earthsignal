@@ -1,11 +1,13 @@
 # API Contract
 
-## GET /api/health
+## GET, HEAD /api/health
 
-Response:
+GET response:
 ```json
 {"status":"ok","service":"earthsignal"}
 ```
+
+HEAD returns the same success status and headers without a response body.
 
 ## GET /api/earth
 

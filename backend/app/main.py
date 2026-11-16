@@ -121,7 +121,7 @@ async def home():
     return FileResponse(FRONTEND_DIR / "index.html")
 
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 async def health():
     return {"status": "ok", "service": "earthsignal"}
 

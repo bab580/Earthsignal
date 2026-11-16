@@ -24,6 +24,19 @@ def test_rainfall_history_uses_twelve_complete_calendar_months():
     assert end == date(2026, 10, 31)
 
 
+def test_health_route_supports_get_and_head(tmp_path, monkeypatch):
+    monkeypatch.setattr(app_module, "SENSOR_DB", tmp_path / "health-test.sqlite3")
+
+    with TestClient(app_module.app) as client:
+        get_response = client.get("/api/health")
+        head_response = client.head("/api/health")
+
+    assert get_response.status_code == 200
+    assert get_response.json() == {"status": "ok", "service": "earthsignal"}
+    assert head_response.status_code == 200
+    assert head_response.content == b""
+
+
 def test_monthly_rainfall_reports_valid_coverage():
     result = summarize_monthly_rainfall(
         {
